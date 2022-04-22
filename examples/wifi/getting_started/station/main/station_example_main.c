@@ -10,11 +10,13 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
+#include "esp_console.h"
 #include "esp_system.h"
 #include "esp_wifi.h"
 #include "esp_event.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
+
 
 #include "lwip/err.h"
 #include "lwip/sys.h"
@@ -130,6 +132,32 @@ void wifi_init_sta(void)
     vEventGroupDelete(s_wifi_event_group);
 }
 
+static void init_console(void) {
+    esp_console_repl_t *repl = NULL;
+    esp_console_repl_config_t repl_config = ESP_CONSOLE_REPL_CONFIG_DEFAULT();
+    esp_console_dev_uart_config_t uart_config = ESP_CONSOLE_DEV_UART_CONFIG_DEFAULT();
+    /* Prompt to be printed before each line.
+     * This can be customized, made dynamic, etc.
+     */
+    repl_config.prompt = "esp32>";
+    repl_config.max_cmdline_length = 1024; //CONFIG_CONSOLE_MAX_COMMAND_LINE_LENGTH;
+
+#if CONFIG_CONSOLE_STORE_HISTORY
+    initialize_filesystem();
+    repl_config.history_save_path = HISTORY_PATH;
+    ESP_LOGI(TAG, "Command history enabled");
+#else
+    ESP_LOGI(TAG, "Command history disabled");
+#endif
+
+    /* Register commands */
+    esp_console_register_help_command();
+
+    ESP_ERROR_CHECK(esp_console_new_repl_uart(&uart_config, &repl_config, &repl));
+
+    ESP_ERROR_CHECK(esp_console_start_repl(repl));
+}
+
 void app_main(void)
 {
     //Initialize NVS
@@ -142,4 +170,6 @@ void app_main(void)
 
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
     wifi_init_sta();
+
+    init_console();
 }

@@ -110,3 +110,6 @@
 [submodule "components/ieee802154/lib"]
 	path = components/ieee802154/lib
 	url = ../../espressif/esp-ieee802154-lib.git
+[submodule "examples/wifi/getting_started/station/memfault-firmware-sdk"]
+	path = examples/wifi/getting_started/station/memfault-firmware-sdk
+	url = https://github.com/memfault/memfault-firmware-sdk.git
